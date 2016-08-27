@@ -25,7 +25,7 @@ Example:
 
 ## Specifics
 
-This removes these kinds of log files from the `/var/log` directory:
+This removes many kinds of log files.
 
 File names that end with:
 

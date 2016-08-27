@@ -27,7 +27,7 @@
 #
 # ## Specifics
 #
-# This removes these kinds of log files from the `/var/log` directory:
+# This removes many kinds of log files.
 #
 # File names that end with:
 #
@@ -81,10 +81,6 @@ set -u
 path=${1:-/var/log}
 rm=${rm:-rm -f}
 
-echo $path
-echo $rm
-exit
- 
 ## Remove top level files because this reclaims space immediately
 $rm $path/*.bz2
 $rm $path/*.gz
