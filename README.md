@@ -6,6 +6,25 @@ logrotate files, and similar log backups.
 Please be certain you don't need
 these log files before you run this.
 
+Syntax:
+
+    log-file-cleaning [path]
+
+Example:
+
+    log-file-cleaning /var/log
+
+The path default is `/var/log` which is typical on popular Unix systems.
+
+You can customize the command by providing your own `rm` command
+as an environment variable.
+
+Example:
+
+    rm="/bin/rm" log-file-cleaning
+
+## Specifics
+
 This removes these kinds of log files from the `/var/log` directory:
 
 File names that end with:
