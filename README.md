@@ -24,8 +24,8 @@ File names that match:
   * dmesg.[0-9]*
   * mail.err.[0-9]*
   * syslog.[0-9]*
-  * xferlog.[0-9]*
   * wtmp.[0-9]*
+  * xferlog.[0-9]*
 
 Any `atop` files. 
 
