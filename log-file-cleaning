@@ -1,0 +1,103 @@
+#!/bin/bash
+#
+# Log file cleaning script
+#
+# This script deletes typical old log files, 
+# logrotate files, and similar log backups.
+#
+# Please be certain you don't need
+# these log files before you run this.
+#
+# This removes these kinds of log files from the `/var/log` directory:
+#
+# File names that end with:
+#
+#   * .bz2
+#   * .gz
+#   * .old
+#   * .bak
+#   * .backup
+#   * .log.[0-9]*
+#   * .[0-9]*.log
+#
+# File names that match:
+#
+#   * btmp.[0-9]*
+#   * dmesg.[0-9]*
+#   * mail.err.[0-9]*
+#   * syslog.[0-9]*
+#   * wtmp.[0-9]*
+#   * xferlog.[0-9]*
+#
+# Any `atop` files - warning - this will delete the current file too;
+# this is a known issue of this script, and is on the roadmap to fix.
+#
+#   * atop/atop_[0-9]*
+#
+# ## Implementation notes
+#
+# This script aims to work even when a disk is full or commands are missing.
+# For example, this scripts starts by deleting files one name by one name,
+# rather than relying on more-sophisticated file globbing or using `find`.
+#
+# This script source code aims to be descriptive and meaningful,
+# so a systems administrator can easily comment out lines as needed,
+# or add new lines easily without affecting any other lines.
+#
+# If you are a developer who is creating a patch or pull request,
+# please keep this code pattern, rather than trying to introduce 
+# features such as more globbing, loops, non-POSIX commands, etc.
+#
+# ## Tracking
+#
+# Command: log-file-cleaning
+# Version: 3.0.0
+# Created: 2012-12-09
+# Updated: 2016-08-27
+# Contact: Joel Parker Henderson (joel@joelparkerhenderson.com)
+# License: GPL
+##
+set -u
+
+## Remove top level files because this reclaims space immediately
+rm -f /var/log/*.bz2
+rm -f /var/log/*.gz
+rm -f /var/log/*.old
+rm -f /var/log/*.bak
+rm -f /var/log/*.backup
+rm -f /var/log/*.log.[0-9]*
+rm -f /var/log/*.[0-9].log
+
+## Remove specific application log files
+rm -f /var/log/btmp.[0-9]*
+rm -f /var/log/dmesg.[0-9]*
+rm -f /var/log/mail.err.[0-9]*
+rm -f /var/log/syslog.[0-9]*
+rm -f /var/log/wtmp.[0-9]*
+rm -f /var/log/xferlog.[0-9]*
+
+# Remove all atop log files.
+# TODO: preserve the most recent atop file.
+rm -f /var/log/atop/atop_[0-9]*
+
+# Remove all Mac OSX Apple System Log files.
+# TODO: scope this so it keeps the most recent one.
+rm -f /var/log/asl/*.asl
+rm -f /var/log/DiagnosticMessages/*.asl
+
+## Find any remaining files by matching exenstions
+find /var/log -type f \( \
+  -name "*.bz2" -o \
+  -name "*.gz" -o \
+  -name "*.old" -o \
+  -name "*.bak" -o \
+  -name "*.backup" -o \
+  -name "*.log.[0-9]*" -o \
+  -name "*.[0-9].log" -o \
+  -name "btmp.[0-9]*" -o \
+  -name "dmesg.[0-9]*" -o \
+  -name "mail.err.[0-9]*" -o \
+  -name "syslog.[0-9]*" -o \
+  -name "wtmp.[0-9]*" -o \
+  -name "xferlog.[0-9]*" \
+\) -exec rm {} \;
