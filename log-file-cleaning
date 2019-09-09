@@ -2,7 +2,7 @@
 #
 # Log file cleaning script
 #
-# This script deletes typical old log files, 
+# This script deletes typical old log files,
 # logrotate files, and similar log backups.
 #
 # Please be certain you don't need
@@ -18,12 +18,16 @@
 #
 # The path default is `/var/log` which is typical on popular Unix systems.
 #
+#
+# ## Custom `rm` command
+#
 # You can customize the command by providing your own `rm` command
 # as an environment variable.
 #
-# Examples:
+# Example:
 #
-#     rm="/bin/rm" log-file-cleaning
+#     rm="/bin/rm -f" log-file-cleaning
+#
 #
 # ## Specifics
 #
@@ -31,27 +35,36 @@
 #
 # File names that end with:
 #
-#   * .bz2
-#   * .gz
-#   * .old
-#   * .bak
-#   * .backup
-#   * .log.[0-9]*
-#   * .[0-9]*.log
+#   * .bz, .gz, .tar, etc.
+#
+#   * .bak, .old, .tmp, etc.
+#
+#
+# File names that match:
+#
+#   * log.[0-9]*
+#
+#   * [0-9]*.log
 #
 # File names that match:
 #
 #   * btmp.[0-9]*
+#
 #   * dmesg.[0-9]*
+#
 #   * mail.err.[0-9]*
+#
 #   * syslog.[0-9]*
+#
 #   * wtmp.[0-9]*
+#
 #   * xferlog.[0-9]*
 #
 # Any `atop` files - warning - this will delete the current file too;
 # this is a known issue of this script, and is on the roadmap to fix.
 #
 #   * atop/atop_[0-9]*
+#
 #
 # ## Implementation notes
 #
@@ -64,15 +77,16 @@
 # or add new lines easily without affecting any other lines.
 #
 # If you are a developer who is creating a patch or pull request,
-# please keep this code pattern, rather than trying to introduce 
+# please keep this code pattern, rather than trying to introduce
 # features such as more globbing, loops, non-POSIX commands, etc.
+#
 #
 # ## Tracking
 #
 # Command: log-file-cleaning
-# Version: 3.0.0
+# Version: 4.0.0
 # Created: 2012-12-09
-# Updated: 2016-08-27
+# Updated: 2019-09-09
 # Contact: Joel Parker Henderson (joel@joelparkerhenderson.com)
 # License: GPL
 ##
@@ -81,22 +95,52 @@ set -u
 path=${1:-/var/log}
 rm=${rm:-rm -f}
 
-## Remove top level files because this reclaims space immediately
-$rm $path/*.bz2
-$rm $path/*.gz
-$rm $path/*.old
-$rm $path/*.bak
-$rm $path/*.backup
-$rm $path/*.log.[0-9]*
-$rm $path/*.[0-9].log
+##
+#
+# Remove top level files because this reclaims space immediately
+#
+##
 
-## Remove specific application log files
+## Remove compressed files
+
+$rm $path/*.bz
+$rm $path/*.bz2
+$rm $path/*.bzip
+$rm $path/*.gz
+$rm $path/*.tar
+$rm $path/*.zip
+$rm $path/*.7zip
+
+## Remove sidelined files
+
+$rm $path/*.bak
+$rm $path/*.back
+$rm $path/*.backup
+$rm $path/*.old
+$rm $path/*.tmp
+$rm $path/*.temp
+$rm $path/*.temporary
+
+## Remove numbered files of generic file names
+
+$rm $path/*.log.[0-9]*
+$rm $path/*.log.[0-9]*.gz
+$rm $path/*.[0-9].log
+$rm $path/*.[0-9].log.gz
+
+## Remove numbeed files of specific applications
+
+$rm $path/alternatives.log.[0-9]*
+$rm $path/apt/history.log.[0-9]*.gz
 $rm $path/btmp.[0-9]*
 $rm $path/dmesg.[0-9]*
+$rm $path/dpkg.log.[0-9]*
+$rm $path/kern.log.[0-9]*
 $rm $path/mail.err.[0-9]*
 $rm $path/syslog.[0-9]*
 $rm $path/wtmp.[0-9]*
 $rm $path/xferlog.[0-9]*
+
 
 # Remove all atop log files.
 # TODO: preserve the most recent atop file.
@@ -107,19 +151,5 @@ $rm $path/atop/atop_[0-9]*
 $rm $path/asl/*.asl
 $rm $path/DiagnosticMessages/*.asl
 
-## Find any remaining files by matching exenstions
-find $path -type f \( \
-  -name "*.bz2" -o \
-  -name "*.gz" -o \
-  -name "*.old" -o \
-  -name "*.bak" -o \
-  -name "*.backup" -o \
-  -name "*.log.[0-9]*" -o \
-  -name "*.[0-9].log" -o \
-  -name "btmp.[0-9]*" -o \
-  -name "dmesg.[0-9]*" -o \
-  -name "mail.err.[0-9]*" -o \
-  -name "syslog.[0-9]*" -o \
-  -name "wtmp.[0-9]*" -o \
-  -name "xferlog.[0-9]*" \
-\) -exec $rm {} \;
+## Remove anything else by using our related script
+rm-rotated-files "$path"
